@@ -7,6 +7,7 @@ import vendingMachineContract from '../blockchain/vending'
 import abi from '../blockchain/vending'
 import styles from '../styles/VendingMachine.module.css'
 import PubNub from '../node_modules/pubnub'
+import dynamic from 'next/dynamic'
 
 var pubnub = new PubNub({
     publishKey: 'pub-c-428292e3-f3b4-4af9-aeb4-80cb8467c0ac',
@@ -27,25 +28,6 @@ const VendingMachine = () => {
     const [vmContract, setVmContract] = useState(null)
 
     // pubnub
-   
-    /*
-    pubnub.subscribe({
-        channels: ['21-' + addy],
-    });
-
-    pubnub.publish({
-        channel: '21-' + addy,
-        message: {
-            move: 'Hello world',
-        },
-    });
-
-    pubnub.addListener({
-        message: function (msg) {
-            app.updateIfValid(msg.message.move);
-        },
-    });
-    */
     // join
     // state channel
 
@@ -63,6 +45,34 @@ const VendingMachine = () => {
         latePlayer: null,
         timeLeft: null,
     };
+
+    pubnub.subscribe({
+        channels: ['21-0xC612cb71D938960F79f3e773EcABdc352FB6b566']
+    });
+
+    pubnub.addListener({
+        message: function (msg) { 
+            /*
+            console.log(msg.message.account)
+            console.log(msg.message.contract)
+            console.log(msg.message.opponent)
+            console.log(msg.message.gameOver)
+            */
+            console.log(msg.message.seq)
+            /*
+            console.log(msg.message.num)
+            console.log(msg.message.whoseTurn)
+            console.log(msg.message.pendingMove)
+            console.log(msg.message.signature)
+            console.log(msg.message.timeout)
+            console.log(msg.message.latePlayer)
+            console.log(msg.message.timeLeft)
+            */
+            stateChannel = msg.message
+            //stateChannel.seq = msg.message.split(" ")[1]
+            //console.log(msg.message.split(" ")[1])
+        },
+    });
 
     useEffect (() => {
         if (vmContract) getInventoryHandler()
@@ -88,11 +98,7 @@ const VendingMachine = () => {
     } 
 
     const getP2Handler = async () => {
-        // volanie smart kontrakt metody
-        //console.log("Called p2")
-        //console.log(await vmContract.methods.getP2().call())
         const P2 = await vmContract.methods.getP2().call()
-        // local
         setP2(P2) 
     } 
 
@@ -136,13 +142,14 @@ const VendingMachine = () => {
                 web3.utils.sha3('Hello world'), 
                 address,     
                 function (err) {
+                    //if (stateChannel.whoseTurn != pendingMove) return error(err);
                     if (err) return error(err);
                     stateChannel.seq++;
-                    console.log(stateChannel.seq)
+                    //console.log(stateChannel.seq)
                     pubnub.publish(
                         {
                             channel: '21-' + addy,
-                            message: 'Signed message from ' + address
+                            message: stateChannel
                             },
                         function(status, response) {
                             //console.log(status, response, "HELLO");
@@ -278,11 +285,37 @@ const VendingMachine = () => {
             </section>
             <section>
                 <div className='container has-text-danger'>
+                Chat Output
+                    <div id='box'></div>
                     <p>{error}</p>
                 </div>
             </section>
         </div>
     )
+}
+if (typeof window !== "undefined") {
+    (function() {
+        var pubnub = new PubNub({
+            publishKey: 'pub-c-428292e3-f3b4-4af9-aeb4-80cb8467c0ac',
+            subscribeKey: 'sub-c-5f9a3170-b0de-11ec-a00a-ee285607d0e8',
+            uuid: 'myFirstUser'
+        });
+        function $(id) {
+            return document.getElementById(id);
+        }
+        var box = $('box'),
+            input = $('input'),
+            channel = '21-0xC612cb71D938960F79f3e773EcABdc352FB6b566';
+        pubnub.addListener({
+            
+            message: function(obj) {
+                box.innerHTML = ('' + obj.message).replace(/[<>]/g, '') + '<br>' + box.innerHTML;
+            }
+        });
+        pubnub.subscribe({
+            channels: [channel]
+        });
+    })()
 }
 
 // joinDonutHandler
