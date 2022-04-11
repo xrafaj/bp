@@ -5,7 +5,7 @@ import '../css/style.css';
 
 function MyApp({ Component, pageProps }) {
 
-    return <Layout><Component {...pageProps} /></Layout>
+    return <Layout ><Component {...pageProps} /></Layout>
 }
 
 // Only uncomment this method if you have blocking data requirements for

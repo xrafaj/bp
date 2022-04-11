@@ -19,6 +19,21 @@ var pubnub = new PubNub({
   uuid: 'myFirstUser'
 });
 
+var stateChannel = {
+  //account: null,
+  contract: '0xC612cb71D938960F79f3e773EcABdc352FB6b566',
+  //opponent: null,
+  gameOver: false,
+  seq: 9,
+  num: 0,
+  whoseTurn: null,
+  //pendingMove: null,
+  signature: null,
+  timeout: null,
+  //latePlayer: null,
+  //timeLeft: null,
+};
+
 const Index = ({ notes }) => {
 
   let addy = "0xC612cb71D938960F79f3e773EcABdc352FB6b566"
@@ -31,39 +46,46 @@ const Index = ({ notes }) => {
   const [web3, setWeb3] = useState(null)
   const [address, setAddress] = useState(null)
   const [vmContract, setVmContract] = useState(null)
- 
-  let stateChannel = {
-    account: address,
-    contract: null,
-    opponent: null,
-    gameOver: true,
-    seq: 0,
-    num: 0,
-    whoseTurn: null,
-    pendingMove: null,
-    signature: null,
-    timeout: null,
-    latePlayer: null,
-    timeLeft: null,
-};
+  const [wallet, setWallet] = useState('Connect wallet')
+  const [stateShared, setStateChannel] = useState('Nothing yet.')
 
-pubnub.subscribe({
-  channels: ['21-0xC612cb71D938960F79f3e773EcABdc352FB6b566']
-});
-
-pubnub.addListener({
-  message: function (msg) { 
-      console.log(msg.message.seq)
-      stateChannel = msg.message
-  },
-});
+let channelGroup = '21-0xC612cb71D938960F79f3e773EcABdc352FB6b566';
 
 useEffect (() => {
+  pubnub.addListener(pubnubListener);
+
+  pubnub.subscribe({
+    channels: ['21-0xC612cb71D938960F79f3e773EcABdc352FB6b566']
+  });
+
   if (vmContract) getInventoryHandler()
   if (vmContract && address) getMyDonutCountHandler()
   if (vmContract) getP1Handler()
   if (vmContract) getP2Handler()
+  if (vmContract && address) updateStateChannel()
+  return leaveApplication
 }, [vmContract, address])
+
+// vmContract.address
+
+const updateStateChannel = async () => {
+  //stateChannel.contract = vmContract.address;
+} 
+
+
+const pubnubListener = {
+  message: function (msg) { 
+
+    stateChannel = msg.message
+    console.log(JSON.stringify(stateChannel,null,4))
+    
+  },
+}
+
+const leaveApplication = () => {
+  pubnub.removeListener(pubnubListener);
+  pubnub.unsubscribeAll()
+}
 
 const getInventoryHandler = async () => {
   const inventory = await vmContract.methods.getVendingMachineBalance().call()
@@ -113,12 +135,24 @@ const joinDonutHandler = async() => {
 
 const moveDonutHandler = async() => {
   try{
+      console.log(stateChannel.whoseTurn)
+      if (stateChannel.whoseTurn != address && stateChannel.whoseTurn != null){
+        console.log("error")
+        return ErrorEvent
+      }
       await web3.eth.sign(
           web3.utils.sha3('Hello world'), 
           address,     
           function (err) {
               if (err) return error(err);
-              stateChannel.seq++;
+              if (stateChannel.whoseTurn == null || stateChannel.whoseTurn == P1){
+                stateChannel.whoseTurn = P2;
+              } else{
+                stateChannel.whoseTurn = P1;
+              }
+              //console.log("C " + stateChannel.account)
+              stateChannel.seq = stateChannel.seq + 1;
+              //console.log(JSON.stringify(stateChannel,null,4))
               pubnub.publish(
                   {
                       channel: '21-' + addy,
@@ -133,6 +167,7 @@ const moveDonutHandler = async() => {
       setError(err.message)
   }
 }
+
 
 const deployContract = async() => {
   /*  Old
@@ -162,9 +197,9 @@ const connectWalletHandler = async () => {
           setWeb3(web3)
           const accounts = await web3.eth.getAccounts()
           setAddress(accounts[0])
+          setWallet(accounts[0])
           const vm = vendingMachineContract(web3)
-          setVmContract(vm)                
-          
+          setVmContract(vm)     
       }catch(err){
           console.log(err.message)
           setError(err.message)
@@ -179,13 +214,27 @@ const connectWalletHandler = async () => {
 
 
 return (
-    <div className="notes-container">
-      <h1>Games</h1>
-      <div className="grid wrapper">
+    
+
+    <div className="notes-container" style={{background: '#16191e'}}>
+
+                <div className="container">
+
+                    <div className="navbar-end">
+                        <button onClick={connectWalletHandler} className='button' style={{background: '#e8b00b'}}>{wallet}</button>
+                    </div>
+                    <label>
+                      {stateShared}
+                    </label>
+                </div>
+    
+
+      <h1 className='container' style={{color: '#e8b00b'}}>Games</h1>
+      <div className="grid wrapper" style={{background: '#16191e'}}>
         {notes.map(note => {
           return (
-            <div key={note._id}>
-              <Card>
+            <div key={note._id} style={{background: '#16191e'}}>
+              <Card style={{background: '#24242e'}}>
                 <Card.Content>
                   <Card.Header>
                     <Link href={`/${note._id}`}>
@@ -195,95 +244,95 @@ return (
                 </Card.Content>
                 <Card.Content extra>
                   <Link href={`/${note._id}`}>
-                    <Button primary>Join</Button>
+                    <Button>Delete</Button>
                   </Link>
                   <Link href={`/${note._id}/edit`}>
-                    <Button primary>Edit</Button>
+                    <Button>Edit</Button>
                   </Link>
+                  
                 </Card.Content>
               </Card>
             </div>
           )
         })}
       </div>
+      
+      
 
-
-      <div className={styles.main}>
+      <div className={styles.main} style={{background: '#16191e'}}>
             <Head>
                 <title>BP Rafaj</title>
                 <meta name="description" content="A blockchain vending machine app" />
             </Head>
-            <nav className="navbar mt-4 mb-4">
-                <div className="container">
-                    <div className="navbar-brand">
-                        <h1>
-                            Gaming Defi
-                        </h1>
-                    </div>
-                    <div className="navbar-end">
-                        <button onClick={connectWalletHandler} className='button is-primary'>Connect wallet</button>
-                    </div>
-                </div>
-            </nav>
+            <br></br>
             <section>
+            <div className='container'>
+              <Link href="/new">
+                <button className="">Create game  by clicking here</button>
+              </Link>
+            </div>
+            </section>
+            <section>
+                <br></br>
                 <div className='container'>
-                    <h2>Total inventory (supply): {inventory}</h2>
+                    <h2 style={{color: "#9393a7"}}>Total inventory (supply): {inventory}</h2>
                 </div>
             </section>
             <section>
                 <div className='container'>
-                    <h2>State channel seq number: {stateChannel.seq}</h2>
-                    <h2>My addy: {address}</h2>
-                    <h2>My coins: {myDonutCount}</h2>
+                    <h2 style={{color: "#9393a7"}}>State channel seq number: {stateChannel.seq}</h2>
+                    <h2 style={{color: "#9393a7"}}>My addy: {address}</h2>
+                    <h2 style={{color: "#9393a7"}}>My coins: {myDonutCount}</h2>
                 </div>
             </section>
             <section>
                 <div className='container'>
-                    <h2>Player 1 addy (owner): {P1}</h2>
+                    <h2 style={{color: "#9393a7"}}>Player 1 addy (owner): {P1}</h2>
                 </div>
             </section>
             <section>
                 <div className='container'>
-                    <h2>Player 2 addy (joined): {P2}</h2>
+                    <h2 style={{color: "#9393a7"}}>Player 2 addy (joined): {P2}</h2>
                 </div>
             </section>
             <section>
                 <div className='container'>
                     <div className='field'>
-                        <label className='label'>Buy coins (1 coin = 0.01 ETH)</label>
+                        <label className='label' style={{color: "#9393a7"}}>Buy coins (1 coin = 0.01 ETH)</label>
                         <div className='control'>
                             <input onChange={updateDonateQty} className='input' type="type" placeholder="Enter amount.."></input>
                         </div>
-                        <button onClick={buyDonutHandler} className='button is-primary'>Buy</button>
+                        <button onClick={buyDonutHandler} className='' style={{background: '#e8b00b'}}>Buy coins</button>
                     </div>
+                    <br></br>
                 </div>
             </section>
             <section>
                 <div className='container'>
                     <div className='field'>
-                        <label className='label'>Deploy contract</label>
-                        <button onClick={deployContract} className='button is-primary'>Deploy</button>
+                        <button onClick={deployContract} className='' style={{background: '#e8b00b'}}>Deploy contract</button>
                     </div>
+                    <br></br>
                 </div>
             </section>
             <section>
                 <div className='container'>
                     <div className='field'>
-                        <label className='label'>Join contract</label>
-                        <button onClick={joinDonutHandler} className='button is-primary'>Join</button>
+                        <button onClick={joinDonutHandler} className='' style={{background: '#e8b00b'}}>Join contract</button>
                     </div>
+                    <br></br>
                 </div>
             </section>
             <section>
                 <div className='container'>
                     <div className='field'>
-                        <label className='label'>Pohyb v kontrakte</label>
-                        <button onClick={moveDonutHandler} className='button is-primary'>Move</button>
+                        <button onClick={moveDonutHandler} className='' style={{background: '#e8b00b'}}>Send signed message</button>
                     </div>
+                    <br></br>
                 </div>
             </section>
             <section>
-                <div className='container has-text-danger'>
+                <div className='container has-text-danger' style={{color: "#9393a7"}}>
                 Chat Output
                     <div id='box'></div>
                     <p>{error}</p>
@@ -303,6 +352,7 @@ Index.getInitialProps = async () => {
   return { notes: data }
 }
 
+/*
 if (typeof window !== "undefined") {
   (function() {
       var pubnub = new PubNub({
@@ -317,8 +367,9 @@ if (typeof window !== "undefined") {
           input = $('input'),
           channel = '21-0xC612cb71D938960F79f3e773EcABdc352FB6b566';
       pubnub.addListener({
-          
           message: function(obj) {
+              //console.log(msg.message.seq);
+              //stateChannel = msg.message;
               box.innerHTML = ('' + obj.message).replace(/[<>]/g, '') + '<br>' + box.innerHTML;
           }
       });
@@ -327,5 +378,5 @@ if (typeof window !== "undefined") {
       });
   })()
 }
-
+*/
 export default Index;

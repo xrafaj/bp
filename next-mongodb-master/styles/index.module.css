@@ -1,5 +1,39 @@
 .main h1 {
+    background: #16191e;
     font-family:Arial;
     font-size: 2em;
     font-weight: bold;
+}
+
+.main navbar{
+    background: #16191e;
+}
+
+.main body{
+    background: #16191e;
+}
+
+.main button {
+    display: inline-block;
+    padding: 15px 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: black;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #cd6d31;
+  }
+  
+  .main button:active {
+    background-color: #3e8e41;
+    box-shadow: 0 5px #cd6d31;
+    transform: translateY(4px);
+  }
+
+.main input{
+    width: 30%;
 }

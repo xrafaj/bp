@@ -1,5 +1,6 @@
 html,
 body {
+  background: #16191e;
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
@@ -7,10 +8,12 @@ body {
 }
 
 a {
+  background: #16191e;
   color: inherit;
   text-decoration: none;
 }
 
 * {
+  background: #16191e;
   box-sizing: border-box;
 }

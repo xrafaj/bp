@@ -1,4 +1,5 @@
 h1 {
+    background: #16191e;
     text-align: center;
 }
 
@@ -6,42 +7,47 @@ h1 {
     max-width: 1200px;
     padding: 0 16px;
     margin: auto;
+    background: #16191e;
 }
 
 .navbar {
     padding: 20px;
-    margin-bottom: 20px;
-    background: #008cba;
-    color: #666666;
+    background: #16191e;
     display: flex;
     justify-content: space-between;
 }
 
 .navbar .create {
-    color: #666666;
+    background: #16191e;
+    color: #e8b00b;
     font-size: 1.5rem;
 }
 
 .navbar .navbar-brand {
-    color: #666666;
+    background: #16191e;
+    color: #e8b00b;
     font-size: 2rem;
 }
 
 .navbar-brand:hover, .create:hover {
-    color: #666666;
+    background: #16191e;
+    color: #e8b00b;
 }
 
 .form-container {
+    background: #16191e;
     width: 400px;
     margin: 20px auto;
 }
 
 .note-container {
+    background: #16191e;
     text-align: center;
     margin-top: 20px;
 }
 
 .grid {
+    background: #16191e;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 10px;
