@@ -13,6 +13,10 @@ import PubNub from '../node_modules/pubnub'
 import dynamic from 'next/dynamic'
 import vendingMachineContract from '../blockchain/vending'
 
+import { ethers } from "ethers";
+import arrayify from 'arrayify';
+import EthCrypto from 'eth-crypto';
+
 var pubnub = new PubNub({
   publishKey: 'pub-c-428292e3-f3b4-4af9-aeb4-80cb8467c0ac',
   subscribeKey: 'sub-c-5f9a3170-b0de-11ec-a00a-ee285607d0e8',
@@ -75,8 +79,14 @@ const updateStateChannel = async () => {
 
 const pubnubListener = {
   message: function (msg) { 
-
-    stateChannel = msg.message
+  
+    const signer = EthCrypto.recover(
+      msg.message.signature, // signature
+      EthCrypto.hash.keccak256(msg.message.plainText) // message hash
+    );
+    console.log(signer);  
+    // First the message must be binary
+    stateChannel = msg.message.move
     console.log(JSON.stringify(stateChannel,null,4))
     
   },
@@ -133,6 +143,18 @@ const joinDonutHandler = async() => {
   }
 }
 
+function recoverSigner(message, signature) {
+  console.log("xd")
+  var split = ethereumjs.Util.fromRpcSig(signature);
+  console.log("xd")
+  var publicKey = ethereumjs.Util.ecrecover(message, split.v, split.r, split.s);
+  console.log("xd")
+  var signer = "0x" + ethereumjs.Util.pubToAddress(publicKey).toString("hex");
+  console.log("xd")
+  console.log(signer)
+  return signer;
+}
+
 const moveDonutHandler = async() => {
   try{
       console.log(stateChannel.whoseTurn)
@@ -140,10 +162,10 @@ const moveDonutHandler = async() => {
         console.log("error")
         return ErrorEvent
       }
-      await web3.eth.sign(
+      let sign = await web3.eth.sign(
           web3.utils.sha3('Hello world'), 
           address,     
-          function (err) {
+          function (err, sign) {
               if (err) return error(err);
               if (stateChannel.whoseTurn == null || stateChannel.whoseTurn == P1){
                 stateChannel.whoseTurn = P2;
@@ -156,7 +178,12 @@ const moveDonutHandler = async() => {
               pubnub.publish(
                   {
                       channel: '21-' + addy,
-                      message: stateChannel
+                      //message: stateChannel,
+                      message: {
+                        plainText: "Hello world",
+                        move: stateChannel,
+                        signature: sign,
+                      },
                       },
                   function(status, response) {
                       }
