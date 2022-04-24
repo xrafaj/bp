@@ -3,6 +3,88 @@ pragma solidity ^0.8.11;
 
 contract VendingMachine {
 
+    bytes1[9] result;
+
+    function getMessageHash(
+        uint[] calldata _num
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(_num));
+    }
+
+    function hash(
+        uint[] calldata _num
+    ) public pure returns (bytes32) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        return keccak256(abi.encodePacked(prefix,_num));
+    }
+
+    function getEthSignedMessageHash(bytes32 _messageHash)
+        public
+        pure
+        returns (bytes32)
+    {
+        return
+            keccak256(
+                abi.encodePacked("\x19Ethereum Signed Message:\n32", _messageHash)
+            );
+    }
+
+    function recoverSigner(bytes32 _ethSignedMessageHash, bytes memory _signature)
+        public
+        pure
+        returns (address)
+    {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+
+        return ecrecover(_ethSignedMessageHash, v, r, s);
+    }
+
+    function splitSignature(bytes memory sig)
+        public
+        pure
+        returns (
+            bytes32 r,
+            bytes32 s,
+            uint8 v
+        )
+    {
+        require(sig.length == 65, "invalid signature length");
+
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+
+    }
+
+    function verify(bytes32 message, uint8 v, bytes32 r, bytes32 s) public pure returns (address) {
+        address signer = ecrecover(message, v, r, s);
+        return signer;
+    }
+
+    function verifyExtra(bytes32 message, uint8 v, bytes32 r, bytes32 s) public pure returns (address) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, message));
+        address signer = ecrecover(prefixedHash, v, r, s);
+        return signer;
+    }
+
+    function foo(bytes1[9] memory _mdata) public returns(bytes1[9] memory){
+        
+        uint8 i;
+        for(i=0 ; i<9 ; i++){
+            result[i] = _mdata[i];
+        }
+        return result;
+    }
+    
+    function getResultBalance() public view returns (bytes1[9] memory) {
+        return result;
+    }
+
+
+
     // state variables
     address public owner;
     mapping (address => uint) public donutBalances;
