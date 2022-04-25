@@ -26,10 +26,33 @@ contract VendingMachine {
         return keccak256(abi.encode(_num));
         }
 
-    function verify(bytes32 _board, bytes memory _signature1, bytes memory _signature2) public returns (bool){
+    function verify(uint[] calldata _num, bytes32 _board, bytes memory _signature1, bytes memory _signature2) public returns (bool){
         require(recoverSigner(_board, _signature1) == owner, 'EOAVerify: Signed mismatch');
         require(recoverSigner(_board, _signature2) == p2_address, 'EOAVerify: Signed mismatch');
-        winner = owner;
+        if (    (_num[0] == 0x00 && _num[1] == 0x00 && _num[2] == 0x00 ) ||
+                (_num[3] == 0x00 && _num[4] == 0x00 && _num[5] == 0x00 ) ||
+                (_num[6] == 0x00 && _num[7] == 0x00 && _num[8] == 0x00 ) ||
+                (_num[0] == 0x00 && _num[4] == 0x00 && _num[8] == 0x00 ) ||
+                (_num[6] == 0x00 && _num[4] == 0x00 && _num[2] == 0x00 ) ||
+                (_num[0] == 0x00 && _num[3] == 0x00 && _num[6] == 0x00 ) ||
+                (_num[1] == 0x00 && _num[4] == 0x00 && _num[7] == 0x00 ) ||
+                (_num[2] == 0x00 && _num[5] == 0x00 && _num[8] == 0x00 ) 
+        ){
+            winner = owner;
+        }else if(
+                (_num[0] == 0x02 && _num[1] == 0x02 && _num[2] == 0x02 ) ||
+                (_num[3] == 0x02 && _num[4] == 0x02 && _num[5] == 0x02 ) ||
+                (_num[6] == 0x02 && _num[7] == 0x02 && _num[8] == 0x02 ) ||
+                (_num[0] == 0x02 && _num[4] == 0x02 && _num[8] == 0x02 ) ||
+                (_num[6] == 0x02 && _num[4] == 0x02 && _num[2] == 0x02 ) ||
+                (_num[0] == 0x02 && _num[3] == 0x02 && _num[6] == 0x02 ) ||
+                (_num[1] == 0x02 && _num[4] == 0x02 && _num[7] == 0x02 ) ||
+                (_num[2] == 0x02 && _num[5] == 0x02 && _num[8] == 0x02 ) 
+        ){
+            winner = p2_address;
+        }else {
+            return false;
+        }
         return true;
     }
 
