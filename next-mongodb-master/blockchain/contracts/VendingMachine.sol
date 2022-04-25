@@ -5,14 +5,15 @@ contract VendingMachine {
 
     // state variables
     bytes1[9] public result;
+    mapping (address => uint) public coinBalance;
     address public owner;
     address public winner;
-    mapping (address => uint) public coinBalance;
     address payable p2_address;
-    constructor() {
-            owner = msg.sender;
-            coinBalance[address(this)] = 100;
-        }
+    constructor() payable {
+        require(msg.value == 0.02 ether);
+        owner = payable(msg.sender);
+        coinBalance[address(this)] = 100;
+    }
 
     function returnWinner() public
         view
@@ -39,6 +40,9 @@ contract VendingMachine {
                 (_num[2] == 0x00 && _num[5] == 0x00 && _num[8] == 0x00 ) 
         ){
             winner = owner;
+            uint amount = address(this).balance;
+            (bool success, ) = winner.call{value: amount}("");
+            require(success, "Failed to send Ether");
         }else if(
                 (_num[0] == 0x02 && _num[1] == 0x02 && _num[2] == 0x02 ) ||
                 (_num[3] == 0x02 && _num[4] == 0x02 && _num[5] == 0x02 ) ||
@@ -50,6 +54,9 @@ contract VendingMachine {
                 (_num[2] == 0x02 && _num[5] == 0x02 && _num[8] == 0x02 ) 
         ){
             winner = p2_address;
+            uint amount = address(this).balance;
+            (bool success, ) = winner.call{value: amount}("");
+            require(success, "Failed to send Ether");
         }else {
             return false;
         }
@@ -98,7 +105,7 @@ contract VendingMachine {
 
     // Purchase from the vending machine
     function purchase(uint amount) public payable {
-        require(msg.value >= amount * 0.01 ether, "You must pay at least 2 ETH per coin");
+        require(msg.value >= amount * 0.01 ether, "You must pay at least 0.01 ETH per coin");
         require(coinBalance[address(this)] >= amount, "Not enough coins in stock to complete this purchase");
         coinBalance[address(this)] -= amount;
         coinBalance[msg.sender] += amount;
@@ -106,6 +113,8 @@ contract VendingMachine {
 
     // join channel
     function join() public payable {
+        require(msg.value == 0.02 ether);
+        require(p2_address == address(0));
         p2_address = payable(msg.sender);
     }
 
