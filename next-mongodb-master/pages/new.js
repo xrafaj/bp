@@ -63,7 +63,7 @@ const NewNote = () => {
 
         return err;
     }
-
+    return ;
     return (
         <div className="form-container">
             <h1>Create games</h1>

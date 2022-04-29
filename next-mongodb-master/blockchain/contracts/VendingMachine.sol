@@ -2,13 +2,14 @@
 pragma solidity ^0.8.11;
 
 contract VendingMachine {
-
-    // state variables
-    bytes1[9] public result;
     mapping (address => uint) public coinBalance;
     address public owner;
     address public winner;
     address payable p2_address;
+    address payable inactive;
+    address payable waiting;
+    uint256 public constant TIMEOUT = 2 minutes;
+    uint256 timeout;
     constructor() payable {
         require(msg.value == 0.02 ether);
         owner = payable(msg.sender);
@@ -30,6 +31,7 @@ contract VendingMachine {
     function verify(uint[] calldata _num, bytes32 _board, bytes memory _signature1, bytes memory _signature2) public returns (bool){
         require(recoverSigner(_board, _signature1) == owner, 'EOAVerify: Signed mismatch');
         require(recoverSigner(_board, _signature2) == p2_address, 'EOAVerify: Signed mismatch');
+        require(winner == address(0));
         if (    (_num[0] == 0x00 && _num[1] == 0x00 && _num[2] == 0x00 ) ||
                 (_num[3] == 0x00 && _num[4] == 0x00 && _num[5] == 0x00 ) ||
                 (_num[6] == 0x00 && _num[7] == 0x00 && _num[8] == 0x00 ) ||
@@ -62,6 +64,41 @@ contract VendingMachine {
         }
         return true;
     }
+    
+    function timeoutChallenge(bytes32 _board, bytes32 _boardBefore, bytes memory _challenger, bytes memory _challenged) public returns (bool){
+        require(timeout == 0);
+        require(winner == address(0));
+         if (msg.sender == owner) {
+            require(recoverSigner(_board, _challenger) == owner, 'EOAVerify: Signed mismatch');
+            require(recoverSigner(_boardBefore, _challenged) == p2_address, 'EOAVerify: Signed mismatch');
+            inactive = p2_address;
+            waiting = payable(owner);
+        } else if (msg.sender == p2_address){
+            require(recoverSigner(_board, _challenger) == p2_address, 'EOAVerify: Signed mismatch');
+            require(recoverSigner(_boardBefore, _challenged) == owner, 'EOAVerify: Signed mismatch');
+            inactive = payable(owner);
+            waiting = p2_address;
+        }
+        timeout = block.timestamp + TIMEOUT;
+        return true;
+    }
+
+    function claimTimeout() external {
+        require(timeout <= block.timestamp);
+        require(waiting != address(0));
+        winner = waiting;
+        uint amount = address(this).balance;
+        (bool success, ) = waiting.call{value: amount}("");
+        require(success, "Failed to send Ether");
+    }
+
+    function cancelTimeout() public {
+        require(inactive == msg.sender);
+        require(timeout > block.timestamp);
+        inactive = payable(address(0));
+        waiting = payable(address(0));
+        timeout = 0;
+    }
 
     function recoverSigner(bytes32 _ethSignedMessageHash, bytes memory _signature)
         public
@@ -87,14 +124,6 @@ contract VendingMachine {
             }
         }
 
-    function getResultBalance() public view returns (bytes1[9] memory) {
-        return result;
-    }
-
-    function getVendingMachineBalance() public view returns (uint) {
-        return coinBalance[address(this)];
-    }
-
     function getP2() public view returns (address) {
         return (p2_address);
     }
@@ -103,15 +132,6 @@ contract VendingMachine {
         return (owner);
     }
 
-    // Purchase from the vending machine
-    function purchase(uint amount) public payable {
-        require(msg.value >= amount * 0.01 ether, "You must pay at least 0.01 ETH per coin");
-        require(coinBalance[address(this)] >= amount, "Not enough coins in stock to complete this purchase");
-        coinBalance[address(this)] -= amount;
-        coinBalance[msg.sender] += amount;
-    }
-
-    // join channel
     function join() public payable {
         require(msg.value == 0.02 ether);
         require(p2_address == address(0));
