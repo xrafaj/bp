@@ -1,7 +1,6 @@
 .main h1 {
     background: #16191e;
     font-family:Arial;
-    font-size: 2em;
     font-weight: bold;
 }
 
@@ -14,7 +13,7 @@
 }
 
 .main button {
-    display: inline-block;
+    display: inline;
     padding: 15px 25px;
     font-size: 1rem;
     cursor: pointer;
@@ -25,7 +24,7 @@
     background-color: #4CAF50;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 9px #cd6d31;
+    box-shadow: 0 7px #cd6d31;
   }
   
   .main button:active {

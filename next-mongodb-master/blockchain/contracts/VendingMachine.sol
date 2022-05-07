@@ -2,18 +2,19 @@
 pragma solidity ^0.8.11;
 
 contract VendingMachine {
-    mapping (address => uint) public coinBalance;
     address public owner;
     address public winner;
     address payable p2_address;
     address payable inactive;
     address payable waiting;
     uint256 public constant TIMEOUT = 2 minutes;
-    uint256 timeout;
+    uint public bet;
+    uint256 public timeout;
+    
     constructor() payable {
-        require(msg.value == 0.02 ether);
+        require(msg.value >= 0.02 ether);
+        bet = msg.value;
         owner = payable(msg.sender);
-        coinBalance[address(this)] = 100;
     }
 
     function returnWinner() public
@@ -133,7 +134,7 @@ contract VendingMachine {
     }
 
     function join() public payable {
-        require(msg.value == 0.02 ether);
+        require(msg.value == bet);
         require(p2_address == address(0));
         p2_address = payable(msg.sender);
     }

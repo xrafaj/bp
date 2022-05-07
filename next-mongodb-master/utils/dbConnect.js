@@ -1,13 +1,15 @@
 import mongoose from 'mongoose';
-
+//import * as mongoose from "mongoose";
 const connection = {};
+let url = "mongodb+srv://rafajtomas:rafajtomas@rafajbp.px0k8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
 async function dbConnect() {
     if (connection.isConnected) {
         return;
     }
-
-    const db = await mongoose.connect(process.env.MONGO_URI, {
+    const source = process.env.MONGO_URI
+    console.log(source)
+    const db = await mongoose.connect(source, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });

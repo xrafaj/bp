@@ -8,7 +8,7 @@ const NewNote = () => {
     const [form, setForm] = useState({ title: '', description: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
-    const router = useRouter();
+    //const router = useRouter();
 
     useEffect(() => {
         if (isSubmitting) {
@@ -63,7 +63,7 @@ const NewNote = () => {
 
         return err;
     }
-    return ;
+
     return (
         <div className="form-container">
             <h1>Create games</h1>
