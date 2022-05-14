@@ -1,0 +1,18 @@
+hardhat@ C:\Users\nevie\Desktop\BP_prilohy\hardhat
++-- @nomiclabs/hardhat-ethers@2.0.5
++-- @nomiclabs/hardhat-ganache@2.0.1
++-- @nomiclabs/hardhat-waffle@2.0.3
++-- @nomiclabs/hardhat-web3@2.0.0
++-- arraify@1.2.1
++-- arrayify@1.0.0
++-- chai@4.3.6
++-- eth-crypto@2.3.0
++-- ethereum-waffle@3.4.4
++-- ethers@5.6.5
++-- hardhat-gas-reporter@1.0.8
++-- hardhat@2.9.3
++-- keccak256@1.0.6
++-- merkletreejs@0.2.31
++-- solidity-coverage@0.7.21
+`-- web3@1.7.3
+
