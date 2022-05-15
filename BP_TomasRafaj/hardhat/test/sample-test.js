@@ -13,7 +13,6 @@ function delay(time) {
 
 describe("GameChannel", function () {
   it("Deployed contract with 0.02 ETH value. User 2 joined successfully.",async function main() {
-    return;
     const accounts = await hre.ethers.getSigners();
     const GameChannel_ = await ethers.getContractFactory("GameChannel");
     const greeter = await GameChannel_.deploy({ value: ethers.utils.parseEther("0.02") });
@@ -23,7 +22,6 @@ describe("GameChannel", function () {
     expect(await greeter.getP2()).to.equal(accounts[1].address);
   });
   it("Simulated game where player 1 should be a winner.",async function main() {
-    //return;
     const Web3 = require('web3')
     let web3t;
     web3t = new Web3("HTTP://127.0.0.1:7545")
@@ -57,7 +55,6 @@ describe("GameChannel", function () {
     return true;
   });
   it("Simulated game where player 2 should be a winner.",async function main() {
-    return;
     const Web3 = require('web3')
     let web3t;
     web3t = new Web3("HTTP://127.0.0.1:7545")
@@ -91,7 +88,6 @@ describe("GameChannel", function () {
     return true;
   });
   it("Simulation of timeout situation.",async function main() {
-    return;
     this.timeout(0)
     const Web3 = require('web3')
     let web3t;
@@ -151,93 +147,34 @@ describe("GameChannel", function () {
     let account = await web3t.eth.getAccounts();
     const { MerkleTree } = require('merkletreejs')
     const keccak256 = require('keccak256')
-    const unhashed = ['0151', '0252', '0353', '0454', '0561', '0671'];
-    const leaves = ['0151', '0252', '0353', '0454', '0561', '0671'].map(v => keccak256(v))
+    const unhashed = ['015', '025', '035', '045', '056', '067'];
+    const leaves = ['015', '025', '035', '045', '056', '067'].map(v => keccak256(v))
     const tree = new MerkleTree(leaves, keccak256, { sort: true })
     const root = tree.getHexRoot()
-    const leaf = keccak256('0353')
+    const leaf = keccak256('035')
     const proof = tree.getHexProof(leaf)
-    const badLeaves = ['0151', '0252', '0353', '0454', '0561', '0671'].map(v => keccak256(v))
+    const badLeaves = ['015', '025', '035', '045', '056', '067'].map(v => keccak256(v))
     const badTree = new MerkleTree(badLeaves, keccak256, { sort: true })
     const bProof = badTree.getHexProof(leaf)
     const accounts = await hre.ethers.getSigners();
-    const GameChannel_ = await ethers.getContractFactory("GameChannel");
-    const greeter = await GameChannel_.deploy({ value: ethers.utils.parseEther("0.02") });
+    const TreeChannel = await ethers.getContractFactory("TreeChannel");
+    const greeter = await TreeChannel.deploy(root);
     await greeter.deployed();
-
-    console.log(await greeter._verifyMerkleProof(root, leaf, proof))
-    console.log(await greeter._verifyMerkleProof(root, leaf, bProof))
+    await greeter.connect(accounts[1]).join({ value: ethers.utils.parseEther("0.02") });  
+    console.log("Checksum")
+    console.log(root)
+    console.log(await greeter.getRoot());
+    console.log("Testy:")
+    console.log(await greeter._verifyMerkleProof(leaf, proof))
+    console.log(await greeter._verifyMerkleProof(leaf, bProof))
+    console.log("----------------------------------------------")
     // prvý bit hit =1 , stand = 0           0 / 1 
     // druhý bit hráč = 0 (A) , 1(B)
-    moves1 = [10, 11, 00, 01];
-    cardsA = ['0151', '0252'];
-    cardsB = ['0353', '0454'];
-    let cnt = 1;
-    let aStand = false;
-    let bStand = false;
-    for (let i = 0; i < moves1.length; i++) {
-      if (moves1[i]==10){
-        if(aStand == true){
-          continue;
-        }else{
-          cardsA.push(unhashed[3+cnt])
-          cnt++;
-        }
-      }
-      if (moves1[i]==11){
-        if(bStand == true){
-          continue;
-        }else{
-          cardsB.push(unhashed[3+cnt])
-          cnt++;
-        }
-      }
-      if (moves1[i]==00){
-        aStand = true;
-        continue;
-      }
-      if (moves1[i]==01){
-        bStand = true;
-        continue;
-      }
-    }
-    
-    let sumA = 0;
-    let sumB = 0;
-
-    const leafA = keccak256(cardsA[cardsA.length - 1])
-    const proofA = tree.getHexProof(leafA)
-
-    const leafB = keccak256(cardsB[cardsB.length - 1])
-    const proofB = tree.getHexProof(leafB)
-      // zapísať
-      // zapísať root hash pri deploy
-
-      // overiť platnosť
-      console.log(await greeter._verifyMerkleProof(root, leafA, proofA))
-      console.log(await greeter._verifyMerkleProof(root, leafB, proofB))
-
-      // 
-
-    for (let i = 0; i < cardsA.length; i++) {
-       let tmp = cardsA[i].substring(2,3);
-       sumA = sumA + parseInt(tmp);
-    }
-
-    for (let i = 0; i < cardsB.length; i++) {
-      let tmp = cardsB[i].substring(2,3);
-      sumB = sumB + parseInt(tmp);
-   }
-   console.log(sumA)
-   console.log(sumB)
-   if(sumA>sumB){
-     console.log("A won.")
-   }
-   else if(sumB>sumA){
-    console.log("B won.")
-   }else{
-    console.log("Tie.")
-   }
-    // kto je výherca
+    moves1 = [10, 10, 11, 11, 10, 11, 0, 1];
+    await greeter.verify(moves1, unhashed)
+    console.log(await greeter.getrowA());
+    console.log(await greeter.getrowB());
+    console.log("Winner:")
+    console.log(await greeter.returnWinner());
   });
 });

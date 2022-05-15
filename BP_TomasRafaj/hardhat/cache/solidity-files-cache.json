@@ -73,6 +73,41 @@
       "artifacts": [
         "GameChannel"
       ]
+    },
+    "C:\\Users\\nevie\\Desktop\\hardhat2\\contracts\\TreeChannel.sol": {
+      "lastModificationDate": 1652613258766,
+      "contentHash": "8c2325c3c29c1ea5ad496ed5732de8d7",
+      "sourceName": "contracts/TreeChannel.sol",
+      "solcConfig": {
+        "version": "0.8.4",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.4"
+      ],
+      "artifacts": [
+        "TreeChannel"
+      ]
     }
   }
 }
